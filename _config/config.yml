@@ -5,25 +5,16 @@ After:
     # - cms/*
 ---
 
-LeftAndMain:
+SilverStripe\Admin\LeftAndMain:
   extra_requirements_javascript:
-    - 'resources/shortcodable/javascript/editor_plugin.js'
-    - 'resources/shortcodable/javascript/shortcodable.js'
+    - 'violet88/silverstripe-shortcodable: javascript/shortcodable.js'
   extra_requirements_css:
-    - 'shortcodable/css/shortcodable.css'
+    - 'violet88/silverstripe-shortcodable: css/shortcodable.css'
 
 SilverStripe\Control\Director:
   rules:
-    'admin/shortcodable': Silverstripe\Shortcodable\Controller\ShortcodableController
+    "_shortcodable//$Action": 'Silverstripe\Shortcodable\Controller\ShortcodableController'
 
-Shortcodable:
+Silverstripe\Shortcodable:
   htmleditor_names:
     - cms
-
-HtmlEditorField:
-  extensions:
-    - ShortcodableHtmlEditorField
-
-ShortcodeParser:
-  extensions:
-    - ShortcodableShortcodeParserExtension

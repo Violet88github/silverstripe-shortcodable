@@ -2,6 +2,10 @@
 
 namespace Silverstripe\Shortcodable\Controller;
 
+use BadMethodCallException;
+use InvalidArgumentException;
+use Psr\Container\NotFoundExceptionInterface;
+use ReflectionException;
 use Silverstripe\Shortcodable;
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\Control\Controller;
@@ -15,6 +19,7 @@ use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\Form;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Permission;
+use SilverStripe\View\SSViewer;
 
 /**
  * ShortcodableController.
@@ -23,16 +28,15 @@ use SilverStripe\Security\Permission;
  **/
 class ShortcodableController extends LeftAndMain
 {
-    private static $sc_url_segment = 'shortcodable';
+    private static $url_segment = '_shortcodable';
     private static $required_permission_codes = 'CMS_ACCESS_LeftAndMain';
 
     /**
      * @var array
      */
     private static $allowed_actions = array(
-        'ShortcodeForm' => 'CMS_ACCESS_LeftAndMain',
-        'handleEdit' => 'CMS_ACCESS_LeftAndMain',
-        'shortcodePlaceHolder' => 'CMS_ACCESS_LeftAndMain'
+        'popup' => 'CMS_ACCESS_LeftAndMain',
+        'shortcode' => 'CMS_ACCESS_LeftAndMain',
     );
 
     /**
@@ -43,209 +47,102 @@ class ShortcodableController extends LeftAndMain
     );
 
     /**
-     * @var string
-     */
-    protected $shortcodableclass;
-
-    /**
-     * @var boolean
-     */
-    protected $isnew = true;
-
-    /**
-     * @var array
-     */
-    protected $shortcodedata;
-
-    /**
-     * Get the shortcodable class by whatever means possible.
-     * Determine if this is a new shortcode, or editing an existing one.
-     */
-    public function init()
-    {
-        parent::init();
-        if ($data = $this->getShortcodeData()) {
-            $this->isnew = false;
-            $this->shortcodableclass = $data['name'];
-        } elseif ($type = $this->request->requestVar('ShortcodeType')) {
-            $this->shortcodableclass = $type;
-        } else {
-            $this->shortcodableclass = $this->request->param('ShortcodeType');
-        }
-    }
-
-    /**
-     * Point to edit link, if shortcodable class exists.
-     */
-    public function Link($action = null)
-    {
-        if ($this->shortcodableclass) {
-            return Controller::join_links(
-                $this->config()->url_base,
-                $this->config()->sc_url_segment,
-                'edit',
-                $this->shortcodableclass
-            );
-        }
-        return Controller::join_links($this->config()->url_base, $this->config()->sc_url_segment, $action);
-    }
-
-    /**
-     * handleEdit
-     */
-    public function handleEdit(HTTPRequest $request)
-    {
-        $this->shortcodableclass = $request->param('ShortcodeType');
-        return $this->handleAction($request, $action = $request->param('Action'));
-    }
-
-    /**
-     * Get the shortcode data from the request.
-     * @return array shortcodedata
-     */
-    protected function getShortcodeData()
-    {
-        if($this->shortcodedata){
-            return $this->shortcodedata;
-        }
-        $data = false;
-        if($shortcode = $this->request->requestVar('Shortcode')){
-            //remove BOM inside string on cursor position...
-            $shortcode = str_replace("\xEF\xBB\xBF", '', $shortcode);
-            $data = singleton('\Silverstripe\Shortcodable\ShortcodableParser')->the_shortcodes(array(), $shortcode);
-            if(isset($data[0])){
-                $this->shortcodedata = $data[0];
-                return $this->shortcodedata;
-            }
-        }
-    }
-
-    /**
-     * Provides a GUI for the insert/edit shortcode popup.
+     * Get the json data for the shortcodable popup
      *
-     * @return Form
-     **/
-    public function ShortcodeForm()
+     * @return string|false JSON data
+     * @throws BadMethodCallException
+     * @throws InvalidArgumentException
+     * @throws NotFoundExceptionInterface
+     * @throws ReflectionException
+     */
+    public function popup()
     {
-        Config::inst()->update('SSViewer', 'theme_enabled', false);
-        $classes = Shortcodable::get_shortcodable_classes_fordropdown();
-        $classname = $this->shortcodableclass;
+        $classes = Shortcodable::get_shortcodable_classes();
 
-        if ($this->isnew) {
-            $headingText = _t('Shortcodable.EDITSHORTCODE', 'Edit Shortcode');
-        } else {
-            $headingText =  sprintf(
-                _t('Shortcodable.EDITSHORTCODE', 'Edit %s Shortcode'),
-                singleton($this->shortcodableclass)->singular_name()
+        $fields = array(
+            'phrases' => [
+                'edit_shortcode' => _t('Shortcodable.EDIT_SHORTCODE', 'Edit Shortcode'),
+                'new_shortcode' => _t('Shortcodable.NEW_SHORTCODE', 'New Shortcode'),
+                'select_shortcode' => _t('Shortcodable.SELECT_SHORTCODE', 'Select a shortcode type'),
+                'select_source' => _t('Shortcodable.SELECT_SOURCE', 'Select an entity'),
+                'cancel' => _t('Shortcodable.CANCEL', 'Cancel'),
+                'insert' => _t('Shortcodable.INSERT', 'Insert'),
+            ],
+            'shortcodes' => []
+        );
+
+        foreach ($classes as $class) {
+            $properties = [];
+            $properties = $class::config()->get('shortcode_fields') ?: [];
+
+            $fields['shortcodes'][$class] = array(
+                'class' => $class,
+                'title' => singleton($class)->singular_name(),
+                'source' => singleton($class)->hasMethod('getShortcodableRecords') ?
+                    singleton($class)->getShortcodableRecords() :
+                    $class::get()->map()->toArray(),
+                'fields' => $properties,
             );
         }
-
-        // essential fields
-        $fields = FieldList::create(array(
-            CompositeField::create(
-                LiteralField::create(
-                    'Heading',
-                    sprintf('<h3 class="htmleditorfield-shortcodeform-heading insert">%s</h3>', $headingText)
-                )
-            )->addExtraClass('CompositeField composite cms-content-header nolabel'),
-            LiteralField::create('shortcodablefields', '<div class="ss-shortcodable content">'),
-            DropdownField::create('ShortcodeType', _t('Shortcodable.SHORTCODETYPE', 'Shortcode type'), $classes, $classname)
-                ->setHasEmptyDefault(true)
-                ->addExtraClass('shortcode-type')
-        ));
-
-        // attribute and object id fields
-        if ($classname && class_exists($classname)) {
-            $class = singleton($classname);
-            if (is_subclass_of($class, 'DataObject')) {
-                if (singleton($classname)->hasMethod('getShortcodableRecords')) {
-                    $dataObjectSource = singleton($classname)->getShortcodableRecords();
-                } else {
-                    $dataObjectSource = $classname::get()->map()->toArray();
-                }
-                $fields->push(
-                    DropdownField::create('id', $class->singular_name(), $dataObjectSource)
-                        ->setHasEmptyDefault(true)
-                );
-            }
-            if (singleton($classname)->hasMethod('getShortcodeFields')) {
-                if ($attrFields = singleton($classname)->getShortcodeFields()) {
-                    $fields->push(
-                        CompositeField::create($attrFields)
-                            ->addExtraClass('attributes-composite')
-                            ->setName('AttributesCompositeField')
-                    );
-                }
-            }
-        }
-
-        // actions
-        $actions = FieldList::create(array(
-            FormAction::create('insert', _t('Shortcodable.BUTTONINSERTSHORTCODE', 'Insert shortcode'))
-                ->addExtraClass('ss-ui-action-constructive')
-                ->setAttribute('data-icon', 'accept')
-                ->setUseButtonTag(true)
-        ));
-
-        // form
-        $form = Form::create($this, 'ShortcodeForm', $fields, $actions)
-            ->loadDataFrom($this)
-            ->addExtraClass('htmleditorfield-form htmleditorfield-shortcodable cms-dialog-content');
 
         $this->extend('updateShortcodeForm', $form);
 
-        $fields->push(LiteralField::create('shortcodablefieldsend', '</div>'));
-
-        if ($data = $this->getShortcodeData()) {
-            $form->loadDataFrom($data['atts']);
-
-            // special treatment for setting value of UploadFields
-            foreach ($form->Fields()->dataFields() as $field) {
-                if (is_a($field, 'UploadField') && isset($data['atts'][$field->getName()])) {
-                    $field->setValue(array('Files' => explode(',', $data['atts'][$field->getName()])));
-                }
-            }
-        }
-
-        return $form;
+        return json_encode($fields);
     }
 
     /**
-     * Generates shortcode placeholder to display inside TinyMCE instead of the shortcode.
+     * Generate a shortcode based on the request params
      *
-     * @return void
+     * @param HTTPRequest $request The request on which the shortcode is based
+     * @return string The JSON response
      */
-    public function shortcodePlaceHolder($request)
+    public function shortcode()
     {
-        if (!Permission::check('CMS_ACCESS_CMSMain')) {
-            return;
-        }
+        $class = $this->request->getVar('class');
+        $validClasses = Shortcodable::get_shortcodable_classes();
+        $id = $this->request->getVar('id');
 
-        $classname = $request->param('ID');
-        $id = $request->param('OtherID');
+        // Optional improvement: instead of fetching the entire object, just check if the class exists and has the ID
+        if (
+            $id &&
+            is_subclass_of($class, DataObject::class) &&
+            in_array($class, $validClasses) &&
+            $object = $class::get()->byID($id)
+        ) {
+            $this->response->addHeader('Content-Type', 'application/json');
 
-        if (!class_exists($classname)) {
-            return;
-        }
+            $vars = $this->request->getVars();
+            $filteredVars = array_diff_key($vars, array_flip(['class', 'id']));
 
-        if ($id && is_subclass_of($classname, DataObject::class)) {
-            $object = $classname::get()->byID($id);
+            return json_encode([
+                'shortcode' => self::build_shortcode($class, $id, $filteredVars)
+            ]);
         } else {
-            $object = singleton($classname);
+            $this->httpError(404);
         }
+    }
 
-        if ($object->hasMethod('getShortcodePlaceHolder')) {
-            $attributes = null;
-            if ($shortcode = $request->requestVar('Shortcode')) {
-                $shortcode = str_replace("\xEF\xBB\xBF", '', $shortcode); //remove BOM inside string on cursor position...
-                $shortcodeData = singleton('\Silverstripe\Shortcodable\ShortcodableParser')->the_shortcodes(array(), $shortcode);
-                if (isset($shortcodeData[0])) {
-                    $attributes = $shortcodeData[0]['atts'];
-                }
+    /**
+     * Build a shortcode from a class, id and attributes
+     *
+     * @param string $class The class name
+     * @param int $id The object id
+     * @param array $attributes The shortcode attributes
+     * @return string The shortcode
+     */
+    private static function build_shortcode($class, $id, $attributes)
+    {
+        $shortcode = '[' . $class;
+        if ($id)
+            $shortcode .= ' id="' . $id . '"';
+
+        if ($attributes)
+            foreach ($attributes as $key => $value) {
+                $shortcode .= ' ' . $key . '="' . $value . '"';
             }
 
-            $link = $object->getShortcodePlaceholder($attributes);
-            return $this->redirect($link);
-        }
+        $shortcode .= ']';
+
+        return $shortcode;
     }
 }
