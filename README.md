@@ -134,7 +134,7 @@ class MyDataObject extends DataObject
 >     return [
 >        'youtube' => 'YouTube',
 >        'vimeo' => 'Vimeo'
->    ];
+>     ];
 > }
 > ```
 
