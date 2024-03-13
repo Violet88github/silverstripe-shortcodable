@@ -204,7 +204,7 @@ If you are upgrading from [sheadawson/silverstripe-shortcodable](https://github.
 3.  Update your config namespaces from `Silverstripe\Shortcodable` to `Violet88\Shortcodable`:
     ```diff
     - Silverstripe\Shortcodable:
-    + Silverstripe\Shortcodable\Shortcodable:
+    + Violet88\Shortcodable\Shortcodable:
       shortcodable_classes:
         - MyDataObject
         - MyViewableData
