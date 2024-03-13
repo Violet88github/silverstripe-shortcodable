@@ -1,93 +1,92 @@
 (function () {
     if (typeof tinymce !== 'undefined') {
 
-        tinymce.create('tinymce.plugins.shortcodable', {
-            getInfo: function () {
-                return {
-                    longname: 'Shortcodable - Shortcode UI plugin for SilverStripe',
-                    author: 'Shea Dawson',
-                    authorurl: 'http://www.livesource.co.nz/',
-                    infourl: 'http://www.livesource.co.nz/',
-                    version: "1.0"
-                };
-            },
+        tinymce.PluginManager.add('shortcodable', function (editor) {
+            var me = this;
+            const shortcodePlaceholderTemplate = '<span class="shortcodable-placeholder">%shortcode%</span>'
 
-            init: function (ed, url) {
-                var me = tinyMCE.activeEditor.plugins.shortcodable;
+            function insertShortcodeAtCursor(shortcode) {
+                let shortcodePlaceholder = shortcodePlaceholderTemplate
+                    .replace('%shortcode%', shortcode);
 
-                ed.addButton('shortcodable', {
-                    title: 'Insert Shortcode',
-                    cmd: 'shortcodable',
-                    'class': 'mce_shortcode'
-                });
-
-                ed.addCommand('shortcodable', function (ed) {
-                    jQuery('#' + this.id).entwine('ss').openShortcodeDialog();
-                });
-
-                // On load replace shorcode with placeholder.
-                ed.onLoadContent.add(function (ed, o) {
-                    var newContent = me.replaceShortcodesWithPlaceholders(o.content, ed);
-                    ed.execCommand('mceSetContent', false, newContent, false);
-                });
-
-                ed.onDblClick.add(function (ed, e) {
-                    var dom = ed.dom, node = e.target;
-                    if (node.nodeName === 'IMG' && dom.hasClass(node, 'shortcode-placeholder') && e.button !== 2) {
-                        ed.execCommand('shortcodable');
-                    }
-                });
-            },
+                let node = editor.selection.getNode();
+                if (node.nodeName === 'SPAN' && editor.dom.hasClass(node, 'shortcodable-placeholder')) {
+                    editor.dom.replace(editor.dom.create('span', {
+                        'class': 'shortcodable-placeholder',
+                        'shortcode': shortcode
+                    }, shortcode), node);
+                } else {
+                    editor.insertContent(shortcodePlaceholder);
+                }
+            }
 
             // replace shortcode strings with placeholder images
-            replaceShortcodesWithPlaceholders: function (content, editor) {
-                var plugin = tinyMCE.activeEditor.plugins.shortcodable;
-                var placeholderClasses = jQuery('#' + editor.id).entwine('ss').getPlaceholderClasses();
-
-                if (placeholderClasses) {
-                    return content.replace(/\[([a-z_]+)\s*([^\]]*)\]/gi, function (found, name, params) {
-                        var id = plugin.getAttribute(params, 'id');
-                        if (placeholderClasses.indexOf(name) != -1) {
-                            var src = encodeURI('admin/shortcodable/shortcodePlaceHolder/' + name + '/' + id + '?Shortcode=[' + name + ' ' + params + ']');
-                            var img = jQuery('<img/>')
-                                .attr('class', 'shortcode-placeholder mceItem')
-                                .attr('title', name + ' ' + params)
-                                .attr('src', src);
-                            return img.prop('outerHTML');
-                        }
-
-                        return found;
-                    });
-                } else {
-                    return content;
-                }
-            },
+            function insertPlaceholders(content) {
+                return content.replace(/(\[[A-z0-9_]+( [A-z0-9_]+="[^"]+")*\])/g, function (match, shortcode) {
+                    console.log(shortcode);
+                    return shortcodePlaceholderTemplate
+                        .replace('%shortcode%', shortcode);
+                });
+            }
 
             // replace placeholder tags with shortcodes
-            replacePlaceholdersWithShortcodes: function (co) {
-                var content = jQuery(co);
-                content.find('.shortcode-placeholder').each(function () {
-                    var el = jQuery(this);
-                    var shortCode = '[' + tinymce.trim(el.attr('title')) + ']';
-                    el.replaceWith(shortCode);
+            function stripPlaceholders(content) {
+                return content.replace(/<span class="shortcodable-placeholder( shortcodable-placeholder--removing)?">([^<]+)<\/span>/g, function (match, removing, shortcode) {
+                    if (shortcode.match(/\[[A-z0-9_]+( [A-z0-9_]+="[^"]+")*\]/))
+                        return shortcode;
+                    else
+                        return '';
                 });
-                var originalContent = '';
-                content.each(function () {
-                    if (this.outerHTML !== undefined) {
-                        originalContent += this.outerHTML;
-                    }
-                });
-                return originalContent;
-            },
+            }
 
-            // get an attribute from a shortcode string by it's key
-            getAttribute: function (string, key) {
-                var attr = new RegExp(key + '=\"([^\"]+)\"', 'g').exec(string);
-                return attr ? tinymce.DOM.decode(attr[1]) : '';
+            editor.ui.registry.addButton('shortcodable', {
+                icon: 'code-sample',
+                tooltip: 'Insert Shortcode',
+                onAction: function () {
+                    jQuery('#' + editor.id).entwine('ss').openShortcodeDialog(null);
+                }
+            });
+
+            editor.on('LoadContent', function () {
+                // Get the HTML content from the editor
+                var content = editor.getContent();
+                editor.setContent(insertPlaceholders(content));
+            });
+
+            editor.on('DblClick', function (e) {
+                var node = e.target;
+                if (node.nodeName === 'SPAN' && editor.dom.hasClass(node, 'shortcodable-placeholder'))
+                    jQuery('#' + editor.id).entwine('ss').openShortcodeDialog(jQuery(node).text())
+            });
+
+            // When the editor has changed, check if the shortcode is being removed
+            editor.on('keyup', function (e) {
+                if (e.keyCode === 8 || e.keyCode === 46) {
+                    var node = editor.selection.getNode();
+                    if (node.nodeName === 'SPAN' && editor.dom.hasClass(node, 'shortcodable-placeholder')) {
+                        if (node.textContent.match(/\[[A-z0-9_]+( [A-z0-9_]+="[^"]+")*\]/))
+                            editor.dom.removeClass(node, 'shortcodable-placeholder--removing');
+                        else
+                            editor.dom.addClass(node, 'shortcodable-placeholder--removing');
+                    }
+                }
+            });
+
+            return {
+                getMetadata: function () {
+                    return {
+                        longname: 'Shortcodable - Shortcode UI plugin for SilverStripe',
+                        author: 'Shea Dawson',
+                        authorurl: 'http://www.livesource.co.nz/',
+                        infourl: 'http://www.livesource.co.nz/',
+                        version: "1.0"
+                    };
+                },
+
+                insertShortcodeAtCursor: insertShortcodeAtCursor,
+                stripPlaceholders: stripPlaceholders,
+                insertPlaceholders: insertPlaceholders,
             }
         });
-
-        // Adds the plugin class to the list of available TinyMCE plugins
-        tinymce.PluginManager.add("shortcodable", tinymce.plugins.shortcodable);
     }
 })();

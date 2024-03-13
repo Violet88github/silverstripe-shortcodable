@@ -1,0 +1,18 @@
+.shortcodable-placeholder {
+    color: #666;
+    font-weight: bold;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: #000;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.shortcodable-placeholder--removing {
+    text-decoration-color: #c30010;
+    color: #f01e2c;
+}

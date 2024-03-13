@@ -1,17 +1,38 @@
-.htmleditorfield-shortcodable .ss-shortcodable {
-	padding: 8px 16px;
+/* TODO: This currently has no effect, and thus the popup cannot be styled. */
+#Form_ShortcodeForm .dialog-content {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 1rem;
 }
 
-.htmleditorfield-shortcodable.loading .ss-shortcodable,
-.htmleditorfield-shortcodable.loading .Actions{
-	opacity: 0;
+#Form_ShortcodeForm #shortcode-class,
+#Form_ShortcodeForm #shortcode-source,
+#Form_ShortcodeForm #shortcode-fields {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 1rem;
 }
 
-
-.htmleditorfield-shortcodable .ss-shortcodable .field .chzn-container{
-	max-width: 100%;
+#Form_ShortcodeForm input,
+#Form_ShortcodeForm textarea,
+#Form_ShortcodeForm select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.defaultSkin span.mce_shortcode{
-	background: url(../images/shortcodable.png) no-repeat center center;
+.ui-dialog-titlebar {
+    display: none !important;
 }
