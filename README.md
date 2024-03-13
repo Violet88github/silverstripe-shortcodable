@@ -70,8 +70,9 @@ The schema for the `shortcode_fields` array is as follows:
 {
     "attribute_name": {
         "type": "text",
+        "label": "Attribute label", // Optional
         "placeholder": "Attribute placeholder", // Optional
-        "options": {
+        "options": { // Only for select and radiogroup types
             "option1": "Option 1",
             "option2": "Option 2"
         }
@@ -95,7 +96,8 @@ class MyDataObject extends DataObject
 	private static $shortcode_fields = [
 		'Title' => [
 			'type' => 'text',
-			'placeholder' => 'Title for video'
+            'label' => 'Title for video',
+			'placeholder' => 'Enter a title'
 		],
         'Content' => [
             'type' => 'textarea',

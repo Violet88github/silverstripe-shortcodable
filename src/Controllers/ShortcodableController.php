@@ -52,8 +52,11 @@ class ShortcodableController extends LeftAndMain
             'phrases' => [
                 'edit_shortcode' => _t('Shortcodable.EDIT_SHORTCODE', 'Edit Shortcode'),
                 'new_shortcode' => _t('Shortcodable.NEW_SHORTCODE', 'New Shortcode'),
+                'shortcode_type' => _t('Shortcodable.SHORTCODE_TYPE', 'Shortcode Type'),
+                'shortcode_source' => _t('Shortcodable.SHORTCODE_SOURCE', 'Shortcode Source'),
                 'select_shortcode' => _t('Shortcodable.SELECT_SHORTCODE', 'Select a shortcode type'),
                 'select_source' => _t('Shortcodable.SELECT_SOURCE', 'Select an entity'),
+                'select' => _t('Shortcodable.SELECT', 'Select'),
                 'cancel' => _t('Shortcodable.CANCEL', 'Cancel'),
                 'insert' => _t('Shortcodable.INSERT', 'Insert'),
                 'update' => _t('Shortcodable.UPDATE', 'Update'),

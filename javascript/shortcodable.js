@@ -17,8 +17,8 @@
             autoOpen: false,
             dialogClass: 'no-close',
             minWidth: 400,
-            minHeight: 200,
-            resizable: true,
+            minHeight: 500,
+            resizable: false,
             draggable: true,
 
             close: function() {
@@ -36,7 +36,7 @@
                 template.find('#shortcode-source').remove();
                 template.find('#shortcode-fields').remove();
 
-                var classElement = $('<div id="shortcode-class"></div>');
+                var classElement = $('<div class="field" id="shortcode-class"></div>');
                 var select = $('<select name="class" class="select"><option value="" disabled selected>' + json.phrases['select_shortcode'] + '</option></select>');
                 for (var key in json.shortcodes) {
                     let shortcode = json.shortcodes[key];
@@ -52,7 +52,7 @@
                     template.dialog('option', 'onShortcodeClassSelect').call(this);
                 });
 
-                classElement.append(select);
+                classElement.append('<label>' + json.phrases['shortcode_type'] + '</label>').append(select);
                 $(this).find('.dialog-content').append(classElement);
 
                 if ($(this).data('shortcode'))
@@ -71,7 +71,7 @@
                 // to improve performance with large datasets.
                 var source = shortcode.source;
 
-                var sourceElement = $('<div id="shortcode-source"></div>');
+                var sourceElement = $('<div class="field" id="shortcode-source"></div>');
                 var select = $('<select name="id" class="select"><option value="" disabled selected>' + json.phrases['select_source'] + '</option></select>');
                 for (var key in source) {
                     select.append('<option value="' + key + '">' + source[key] + '</option>');
@@ -84,7 +84,7 @@
                     template.dialog('option', 'onShortcodeSourceSelect').call(this);
                 });
 
-                sourceElement.append(select);
+                sourceElement.append('<label>' + json.phrases['shortcode_source'] + '</label>').append(select);
                 template.find('.dialog-content').append(sourceElement);
             },
 
@@ -98,8 +98,10 @@
 
                 for (var key in fields) {
                     let type = (typeof fields[key] === 'object') ? fields[key].type : 'text';
-                    let placeholder = (typeof fields[key] === 'object') ? fields[key].placeholder : fields[key];
+                    let label = (typeof fields[key] === 'object' && fields[key].label) ? fields[key].label : key;
+                    let placeholder = (typeof fields[key] === 'object' && fields[key].placeholder) ? fields[key].placeholder : '';
                     let input = null;
+                    let inputWrapper = $('<div class="field"></div>');
 
                     switch (type) {
                         case 'textarea':
@@ -107,9 +109,19 @@
                             break;
 
                         case 'select':
-                            input = $('<select name="' + key + '" class="select"><option value="" disabled selected>' + placeholder + '</option></select>');
+                            input = $('<select name="' + key + '" class="select"><option value="" disabled selected>' + ((placeholder == '') ? label : placeholder) + '</option></select>');
                             for (var option in fields[key].options || {})
                                 input.append('<option value="' + option + '">' + fields[key].options[option] + '</option>');
+                            break;
+
+                        case 'radiogroup':
+                            input = $('<div class="radiogroup" name="' + key + '"></div>');
+                            for (var option in fields[key].options || {})
+                                input.append('<span class="radio"><input type="radio" name="' + key + '" value="' + option + '"><label>' + fields[key].options[option] + '</label></span>');
+                            break;
+
+                        case 'checkbox':
+                            input = $('<span class="checkbox"><input type="checkbox" name="' + key + '" value="1"><label>' + ((placeholder == '') ? label : placeholder) + '</label></span>');
                             break;
 
                         default:
@@ -120,13 +132,13 @@
                     input.on('change', function(e) {
                         let selectedShortcode = template.data('selectedShortcode')
                         let target = $(e.target);
-                        if (target.val() === '')
+                        if (target.val() === '' || (target.attr('type') === 'checkbox' && !target.is(':checked')))
                             delete selectedShortcode[target.attr('name')];
                         else
                             selectedShortcode[target.attr('name')] = target.val();
                         template.data('selectedShortcode', selectedShortcode)
                     });
-                    fieldsElement.append(input);
+                    fieldsElement.append(inputWrapper.append('<label>' + label + '</label>').append(input));
                 }
 
                 template.find('.dialog-content').append(fieldsElement);
@@ -154,14 +166,31 @@
                 while (match = regex.exec(shortcode))
                     shortcodeProperties[match[1]] = match[2];
 
+                console.log(shortcodeClass, shortcodeProperties);
+
                 var select = template.find('select[name="class"]');
                 select.val(shortcodeClass);
                 select.trigger('change');
 
                 for (var key in shortcodeProperties) {
                     var input = template.find('[name="' + key + '"]');
+                    // If the input is a radio group, we need to check the correct radio button. The input will contain multiple dom elements.
                     if (input.length) {
-                        input.val(shortcodeProperties[key]);
+                        if (input.length > 1) {
+                            input.each(function() {
+                                if($(this).val() == shortcodeProperties[key] && $(this).attr('type') === 'radio') {
+                                    $(this).prop('checked', true);
+                                }
+                            });
+                        } else if (input.attr('type') === 'checkbox') {
+                            input.each(function() {
+                                if($(this).val() == shortcodeProperties[key]) {
+                                    $(this).prop('checked', true);
+                                }
+                            });
+                        } else {
+                            input.val(shortcodeProperties[key]);
+                        }
                         input.trigger('change');
                     }
                 }
