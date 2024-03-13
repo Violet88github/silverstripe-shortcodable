@@ -2,7 +2,6 @@
     if (typeof tinymce !== 'undefined') {
 
         tinymce.PluginManager.add('shortcodable', function (editor) {
-            var me = this;
             const shortcodePlaceholderTemplate = '<span class="shortcodable-placeholder">%shortcode%</span>'
 
             function insertShortcodeAtCursor(shortcode) {
@@ -20,16 +19,13 @@
                 }
             }
 
-            // replace shortcode strings with placeholder images
             function insertPlaceholders(content) {
                 return content.replace(/(\[[A-z0-9_]+( [A-z0-9_]+="[^"]+")*\])/g, function (match, shortcode) {
-                    console.log(shortcode);
                     return shortcodePlaceholderTemplate
                         .replace('%shortcode%', shortcode);
                 });
             }
 
-            // replace placeholder tags with shortcodes
             function stripPlaceholders(content) {
                 return content.replace(/<span class="shortcodable-placeholder( shortcodable-placeholder--removing)?">([^<]+)<\/span>/g, function (match, removing, shortcode) {
                     if (shortcode.match(/\[[A-z0-9_]+( [A-z0-9_]+="[^"]+")*\]/))
@@ -53,10 +49,12 @@
                 editor.setContent(insertPlaceholders(content));
             });
 
-            editor.on('DblClick', function (e) {
+            editor.on('Click', function (e) {
                 var node = e.target;
-                if (node.nodeName === 'SPAN' && editor.dom.hasClass(node, 'shortcodable-placeholder'))
+                if (node.nodeName === 'SPAN' && editor.dom.hasClass(node, 'shortcodable-placeholder')) {
                     jQuery('#' + editor.id).entwine('ss').openShortcodeDialog(jQuery(node).text())
+                    editor.selection.select(node);
+                }
             });
 
             // When the editor has changed, check if the shortcode is being removed
@@ -76,9 +74,9 @@
                 getMetadata: function () {
                     return {
                         longname: 'Shortcodable - Shortcode UI plugin for SilverStripe',
-                        author: 'Shea Dawson',
-                        authorurl: 'http://www.livesource.co.nz/',
-                        infourl: 'http://www.livesource.co.nz/',
+                        author: 'Roël Couwenberg',
+                        authorurl: 'https://violet88.nl',
+                        infourl: 'https://github.com/Violet88github/silverstripe-shortcodable/',
                         version: "1.0"
                     };
                 },

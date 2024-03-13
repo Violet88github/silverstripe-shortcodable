@@ -1,59 +1,48 @@
 <?php
 
-namespace Silverstripe\Shortcodable\Controller;
+namespace Violet88\Shortcodable\Controllers;
 
 use BadMethodCallException;
 use InvalidArgumentException;
 use Psr\Container\NotFoundExceptionInterface;
 use ReflectionException;
-use Silverstripe\Shortcodable;
 use SilverStripe\Admin\LeftAndMain;
-use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
-use SilverStripe\Core\Config\Config;
-use SilverStripe\Forms\LiteralField;
-use SilverStripe\Forms\DropdownField;
-use SilverStripe\Forms\CompositeField;
-use SilverStripe\Forms\FieldList;
-use SilverStripe\Forms\FormAction;
-use SilverStripe\Forms\Form;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\Security\Permission;
-use SilverStripe\View\SSViewer;
+use Violet88\Shortcodable\Shortcodable;
 
 /**
- * ShortcodableController.
+ * The ShortcodableController class is responsible for handling the shortcodable popup and shortcode generation.
  *
- * @author shea@livesource.co.nz
+ * @package shortcodable
+ * @subpackage controllers
+ * @property array $allowed_actions
+ * @property string $url_segment
+ * @property string $required_permission_codes
+ * @method string popup()
+ * @method string shortcode()
+ * @method string build_shortcode(string $class, int $id, array $attributes)
+ * @author PixNyb <contact@roelc.me>
  **/
 class ShortcodableController extends LeftAndMain
 {
     private static $url_segment = '_shortcodable';
+
     private static $required_permission_codes = 'CMS_ACCESS_LeftAndMain';
 
-    /**
-     * @var array
-     */
     private static $allowed_actions = array(
         'popup' => 'CMS_ACCESS_LeftAndMain',
         'shortcode' => 'CMS_ACCESS_LeftAndMain',
     );
 
     /**
-     * @var array
-     */
-    private static $url_handlers = array(
-        'edit/$ShortcodeType!/$Action//$ID/$OtherID' => 'handleEdit'
-    );
-
-    /**
      * Get the json data for the shortcodable popup
      *
      * @return string|false JSON data
-     * @throws BadMethodCallException
-     * @throws InvalidArgumentException
-     * @throws NotFoundExceptionInterface
-     * @throws ReflectionException
+     * @throws BadMethodCallException If the method is called on a non-DataObject class
+     * @throws InvalidArgumentException If the class does not exist
+     * @throws NotFoundExceptionInterface If the class does not exist
+     * @throws ReflectionException If the class does not exist
      */
     public function popup()
     {
@@ -75,6 +64,14 @@ class ShortcodableController extends LeftAndMain
         foreach ($classes as $class) {
             $properties = [];
             $properties = $class::config()->get('shortcode_fields') ?: [];
+
+            // For each property, check if it contains an option key that is not an array. This should be interpreted as a method name.
+            foreach ($properties as $property => $options)
+                if (isset($options['options']) && !is_array($options['options'])) {
+                    $method = $options['options'];
+                    $object = $class::singleton();
+                    $properties[$property]['options'] = $object->$method();
+                }
 
             $fields['shortcodes'][$class] = array(
                 'class' => $class,

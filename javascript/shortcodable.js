@@ -1,7 +1,6 @@
 (function($) {
     $.get('/_shortcodable/popup', function(data) {
         const json = $.parseJSON(data);
-        console.log(json);
         const template = $('<div id="Form_ShortcodeForm"><h3 class="dialog-title"></h3><div class="dialog-content"></div></div>');
 
         $('body').append(template);
@@ -154,8 +153,6 @@
                 const regex = /([a-zA-Z0-9-_]+)="([^"]+)\"/g;
                 while (match = regex.exec(shortcode))
                     shortcodeProperties[match[1]] = match[2];
-
-                console.log(shortcodeProperties);
 
                 var select = template.find('select[name="class"]');
                 select.val(shortcodeClass);

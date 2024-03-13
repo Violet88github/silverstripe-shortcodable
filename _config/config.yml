@@ -2,7 +2,6 @@
 Name: shortcodable
 After:
     - framework/*
-    # - cms/*
 ---
 
 SilverStripe\Admin\LeftAndMain:
@@ -13,8 +12,8 @@ SilverStripe\Admin\LeftAndMain:
 
 SilverStripe\Control\Director:
   rules:
-    "_shortcodable//$Action": 'Silverstripe\Shortcodable\Controller\ShortcodableController'
+    "_shortcodable//$Action": 'Violet88\Shortcodable\Controllers\ShortcodableController'
 
-Silverstripe\Shortcodable:
+Violet88\Shortcodable\Shortcodable:
   htmleditor_names:
     - cms

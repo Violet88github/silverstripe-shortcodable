@@ -1,16 +1,20 @@
 <?php
 
-namespace Silverstripe;
+namespace Violet88\Shortcodable;
 
 use SilverStripe\View\ViewableData;
 use SilverStripe\View\Parsers\ShortcodeParser;
 use SilverStripe\Core\Config\Config;
 
 /**
- * Shortcodable
- * Manages shortcodable configuration and register shortcodable objects
+ * The Shortcodable class is responsible for registering shortcodable classes, parsing shortcodes and managing configuration.
  *
- * @author shea@livesource.co.nz
+ * @package shortcodable
+ * @property array $shortcodable_classes
+ * @method array get_shortcodable_classes()
+ * @method void register_classes(array $classes)
+ * @method void register_class(string $class)
+ * @author PixNyb <contact@roelc.me>
  **/
 class Shortcodable extends ViewableData
 {

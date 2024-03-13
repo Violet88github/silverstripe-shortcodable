@@ -4,7 +4,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\Forms\HTMLEditor\HtmlEditorConfig;
 use SilverStripe\Forms\HTMLEditor\TinyMCEConfig;
-use Silverstripe\Shortcodable;
+use Violet88\Shortcodable\Shortcodable;
 
 // enable shortcodable buttons and add to HtmlEditorConfig
 $htmlEditorNames = Config::inst()->get(Shortcodable::class, 'htmleditor_names');
