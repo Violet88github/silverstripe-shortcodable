@@ -1,15 +1,38 @@
 /* TODO: This currently has no effect, and thus the popup cannot be styled. */
-
-#Form_ShortcodeForm .shortcode-class,
-#Form_ShortcodeForm .shortcode-source,
-#Form_ShortcodeForm .shortcode-fields {
+#Form_ShortcodeForm .dialog-content {
     display: flex;
     flex-flow: column nowrap;
     justify-content: center;
-    align-items: center;
-    background-color: red;
+    align-items: stretch;
+    gap: 1rem;
 }
 
-#Form_ShortcodeForm .ui-dialog-titlebar-close {
-    display: none;
+#Form_ShortcodeForm #shortcode-class,
+#Form_ShortcodeForm #shortcode-source,
+#Form_ShortcodeForm #shortcode-fields {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 1rem;
+}
+
+#Form_ShortcodeForm input,
+#Form_ShortcodeForm textarea,
+#Form_ShortcodeForm select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.ui-dialog-titlebar {
+    display: none !important;
 }

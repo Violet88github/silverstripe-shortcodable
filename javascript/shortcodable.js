@@ -17,9 +17,10 @@
         template.dialog({
             autoOpen: false,
             dialogClass: 'no-close',
-            width: 400,
-            height: 200,
-            resizable: false,
+            minWidth: 400,
+            minHeight: 200,
+            resizable: true,
+            draggable: true,
 
             close: function() {
                 $(this).dialog('close');
@@ -66,6 +67,9 @@
                 var select = template.find('select');
                 var shortcodeClass = select.val();
                 var shortcode = json.shortcodes[shortcodeClass];
+
+                // TODO: Optionally this can be done with an additional get request and then cached
+                // to improve performance with large datasets.
                 var source = shortcode.source;
 
                 var sourceElement = $('<div id="shortcode-source"></div>');

@@ -67,6 +67,7 @@ class ShortcodableController extends LeftAndMain
                 'select_source' => _t('Shortcodable.SELECT_SOURCE', 'Select an entity'),
                 'cancel' => _t('Shortcodable.CANCEL', 'Cancel'),
                 'insert' => _t('Shortcodable.INSERT', 'Insert'),
+                'update' => _t('Shortcodable.UPDATE', 'Update'),
             ],
             'shortcodes' => []
         );
