@@ -1,4 +1,4 @@
-.shortcodable-placeholder {
+sc-marker {
     color: #666;
     font-weight: bold;
     text-decoration: underline;
@@ -10,9 +10,4 @@
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-}
-
-.shortcodable-placeholder--removing {
-    text-decoration-color: #c30010;
-    color: #f01e2c;
 }

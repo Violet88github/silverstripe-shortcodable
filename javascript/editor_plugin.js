@@ -2,16 +2,15 @@
     if (typeof tinymce !== 'undefined') {
 
         tinymce.PluginManager.add('shortcodable', function (editor) {
-            const shortcodePlaceholderTemplate = '<span class="shortcodable-placeholder">%shortcode%</span>'
+            const shortcodePlaceholderTemplate = '<sc-marker>%shortcode%</sc-marker>'
 
             function insertShortcodeAtCursor(shortcode) {
                 let shortcodePlaceholder = shortcodePlaceholderTemplate
                     .replace('%shortcode%', shortcode);
 
                 let node = editor.selection.getNode();
-                if (node.nodeName === 'SPAN' && editor.dom.hasClass(node, 'shortcodable-placeholder')) {
-                    editor.dom.replace(editor.dom.create('span', {
-                        'class': 'shortcodable-placeholder',
+                if (node.nodeName === 'SC-MARKER') {
+                    editor.dom.replace(editor.dom.create('sc-marker', {
                         'shortcode': shortcode
                     }, shortcode), node);
                 } else {
@@ -27,7 +26,7 @@
             }
 
             function stripPlaceholders(content) {
-                return content.replace(/<span class="shortcodable-placeholder( shortcodable-placeholder--removing)?">([^<]+)<\/span>/g, function (match, removing, shortcode) {
+                return content.replace(/<sc-marker( invalid="true")?>([^<]+)<\/sc-marker>/g, function (match, removing, shortcode) {
                     if (shortcode.match(/\[[A-z0-9_]+( [A-z0-9_]+="[^"]+")*\]/))
                         return shortcode;
                     else
@@ -51,7 +50,7 @@
 
             editor.on('Click', function (e) {
                 var node = e.target;
-                if (node.nodeName === 'SPAN' && editor.dom.hasClass(node, 'shortcodable-placeholder')) {
+                if (node.nodeName === 'SC-MARKER') {
                     jQuery('#' + editor.id).entwine('ss').openShortcodeDialog(jQuery(node).text())
                     editor.selection.select(node);
                 }
@@ -61,11 +60,13 @@
             editor.on('keyup', function (e) {
                 if (e.keyCode === 8 || e.keyCode === 46) {
                     var node = editor.selection.getNode();
-                    if (node.nodeName === 'SPAN' && editor.dom.hasClass(node, 'shortcodable-placeholder')) {
+                    if (node.nodeName === 'SC-MARKER') {
                         if (node.textContent.match(/\[[A-z0-9_]+( [A-z0-9_]+="[^"]+")*\]/))
-                            editor.dom.removeClass(node, 'shortcodable-placeholder--removing');
+                            editor.dom.replace(editor.dom.create('sc-marker', {
+                                'shortcode': node.textContent
+                            }, node.textContent), node);
                         else
-                            editor.dom.addClass(node, 'shortcodable-placeholder--removing');
+                            editor.dom.remove(node);
                     }
                 }
             });

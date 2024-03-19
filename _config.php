@@ -26,6 +26,8 @@ if (is_array($htmlEditorNames)) {
             $editorConfig->setContentCSS($contentCss);
 
             $editorConfig->addButtonsToLine(1, 'shortcodable');
+
+            $editorConfig->setOption('extended_valid_elements', $editorConfig->getOption('extended_valid_elements') . ',sc-marker');
         }
     }
 }
