@@ -26,7 +26,7 @@
             }
 
             function stripPlaceholders(content) {
-                return content.replace(/<sc-marker( invalid="true")?>([^<]+)<\/sc-marker>/g, function (match, removing, shortcode) {
+                return content.replace(/<sc-marker>([^<]+)<\/sc-marker>/g, function (match, shortcode) {
                     if (shortcode.match(/\[[A-z0-9_]+( [A-z0-9_]+="[^"]+")*\]/))
                         return shortcode;
                     else

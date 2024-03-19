@@ -2,6 +2,7 @@
 
 namespace Violet88\Shortcodable;
 
+use SilverStripe\Core\ClassInfo;
 use SilverStripe\View\ViewableData;
 use SilverStripe\View\Parsers\ShortcodeParser;
 use SilverStripe\Core\Config\Config;
@@ -40,5 +41,29 @@ class Shortcodable extends ViewableData
     public static function get_shortcodable_classes()
     {
         return Config::inst()->get(Shortcodable::class, 'shortcodable_classes');
+    }
+
+    public static function get_shortcodable_classnames()
+    {
+        return array_map(function ($class) {
+            return ClassInfo::shortName($class);
+        }, self::get_shortcodable_classes());
+    }
+
+    public static function get_class_by_classname($classname)
+    {
+        $classes = self::get_shortcodable_classes();
+        if (!is_array($classes) || !count($classes))
+            return null;
+
+        if (!is_string($classname))
+            return null;
+
+        foreach ($classes as $class) {
+            if (ClassInfo::shortName($class) == $classname || $class == $classname) {
+                return $class;
+            }
+        }
+        return null;
     }
 }

@@ -8,6 +8,7 @@ use Psr\Container\NotFoundExceptionInterface;
 use ReflectionException;
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Core\ClassInfo;
 use SilverStripe\ORM\DataObject;
 use Violet88\Shortcodable\Shortcodable;
 
@@ -65,6 +66,7 @@ class ShortcodableController extends LeftAndMain
         );
 
         foreach ($classes as $class) {
+            $classname = ClassInfo::shortName($class);
             $properties = [];
             $properties = $class::config()->get('shortcode_fields') ?: [];
 
@@ -76,8 +78,8 @@ class ShortcodableController extends LeftAndMain
                     $properties[$property]['options'] = $object->$method();
                 }
 
-            $fields['shortcodes'][$class] = array(
-                'class' => $class,
+            $fields['shortcodes'][$classname] = array(
+                'class' => $classname,
                 'title' => singleton($class)->singular_name(),
                 'source' => singleton($class)->hasMethod('getShortcodableRecords') ?
                     singleton($class)->getShortcodableRecords() :
@@ -99,7 +101,8 @@ class ShortcodableController extends LeftAndMain
      */
     public function shortcode()
     {
-        $class = $this->request->getVar('class');
+        $classname = $this->request->getVar('class');
+        $class = Shortcodable::get_class_by_classname($classname);
         $validClasses = Shortcodable::get_shortcodable_classes();
         $id = $this->request->getVar('id');
 
@@ -116,7 +119,7 @@ class ShortcodableController extends LeftAndMain
             $filteredVars = array_diff_key($vars, array_flip(['class', 'id']));
 
             return json_encode([
-                'shortcode' => self::build_shortcode($class, $id, $filteredVars)
+                'shortcode' => self::build_shortcode($classname, $id, $filteredVars)
             ]);
         } else {
             $this->httpError(404);

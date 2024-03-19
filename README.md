@@ -31,6 +31,8 @@ Violet88\Shortcodable\Shortcodable:
     - MyViewableData
 ```
 
+Shortcodable classes may be namespaced, but at the moment using duplicate class names in different namespaces is not supported and may lead to unexpected results. This is a known issue and will be addressed in a future release.
+
 ### Parsing Shortcodes
 
 In order to be able to parse the shortcodes, the `parse_shortcode` method must be available in the class. This method should return the HTML that will replace the shortcode in the frontend.
