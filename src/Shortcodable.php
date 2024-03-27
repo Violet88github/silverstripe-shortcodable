@@ -19,7 +19,7 @@ use SilverStripe\Core\Config\Config;
  **/
 class Shortcodable extends ViewableData
 {
-    private static $shortcodable_classes = array();
+    private static $shortcodable_classes = [];
 
     public static function register_classes($classes)
     {
@@ -33,6 +33,9 @@ class Shortcodable extends ViewableData
         if (class_exists($class)) {
             if (!singleton($class)->hasMethod('parse_shortcode'))
                 user_error("Failed to register \"$class\" with shortcodable. $class must have the method parse_shortcode(). See /shortcodable/README.md", E_USER_ERROR);
+
+            if (!singleton($class)->getMethod('parse_shortcode')->isStatic())
+                user_error("Failed to register \"$class\" with shortcodable. parse_shortcode() must be a static method. See /shortcodable/README.md", E_USER_ERROR);
 
             ShortcodeParser::get('default')->register($class, array($class, 'parse_shortcode'));
         }

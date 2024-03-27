@@ -5,6 +5,7 @@
 Provides a popup for inserting and editing shortcodes in the SilverStripe CMS. Shortcodes are small pieces of code inside square brackets that trigger a larger function. This module allows you to define your own `DataObjects` and `ViewableData` as shortcodes, and insert them into the HTMLEditorField in the CMS.
 
 ## Requirements
+
 -   SilverStripe ^5
 -   PHP ^8.1
 
@@ -26,9 +27,9 @@ Define your shortcodes in a yml config file. You can define shortcodes for `Data
 
 ```yaml
 Violet88\Shortcodable\Shortcodable:
-  shortcodable_classes:
-    - MyDataObject
-    - MyViewableData
+    shortcodable_classes:
+        - MyDataObject
+        - MyViewableData
 ```
 
 Shortcodable classes may be namespaced, but at the moment using duplicate class names in different namespaces is not supported and may lead to unexpected results. This is a known issue and will be addressed in a future release.
@@ -78,7 +79,8 @@ The schema for the `shortcode_fields` array is as follows:
         "type": "text",
         "label": "Attribute label", // Optional
         "placeholder": "Attribute placeholder", // Optional
-        "options": { // Only for select and radiogroup types
+        "options": {
+            // Only for select and radiogroup types
             "option1": "Option 1",
             "option2": "Option 2"
         }
@@ -131,6 +133,7 @@ class MyDataObject extends DataObject
 ```
 
 > **Note:** Since the `shortcode_fields` attribute is static and cannot be changed, we've added the ability to define the options for a `select` or `radiogroup` type using a method. This method should return an array of options.
+>
 > ```php
 > private static $shortcode_fields = [
 >     'Type' => [
@@ -180,6 +183,7 @@ class MyDataObject extends DataObject
 ```
 
 ## CMS Usage
+
 Once installed a new icon will appear in the CMS editor toolbar. It looks like this:
 ![icon](docs/img/button.png)
 
@@ -187,7 +191,7 @@ This button shows a popup that can be used to create a new shortcode:
 
 ![popup](docs/img/new.png)
 
-Shortcodes can also be edited by clicking on them in the editor:
+Shortcodes can also be edited by clicking on them in the editor, or removed by pressing the backspace key when the cursor is at the beginning of the shortcode:
 
 ![edit](docs/img/edit.png)
 
@@ -195,8 +199,8 @@ Shortcodes can also be edited by clicking on them in the editor:
 
 Shortcodes are only valid if they are in the format `[shortcode]` or `[shortcode attribute="value"]`. If the shortcode is not valid, it will be highlighted in red and removed when the editor is saved:
 
-| Valid Shortcode | Invalid Shortcode |
-| --- | --- |
+| Valid Shortcode                                              | Invalid Shortcode                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------------ |
 | [![Valid Shortcode](docs/img/valid.png)](docs/img/valid.png) | [![Invalid Shortcode](docs/img/invalid.png)](docs/img/invalid.png) |
 
 ## Upgrading from [sheadawson/silverstripe-shortcodable](https://github.com/sheadawson/silverstripe-shortcodable)
@@ -204,16 +208,19 @@ Shortcodes are only valid if they are in the format `[shortcode]` or `[shortcode
 If you are upgrading from [sheadawson/silverstripe-shortcodable](https://github.com/sheadawson/silverstripe-shortcodable) the following steps can be used to get you back on track:
 
 1.  Remove the old module using composer:
+
     ```bash
     composer remove sheadawson/silverstripe-shortcodable
     ```
 
 2.  Install the new module using composer:
+
     ```bash
     composer require violet88/silverstripe-shortcodable
     ```
 
 3.  Update your config namespaces from `Silverstripe\Shortcodable` to `Violet88\Shortcodable`:
+
     ```diff
     - Silverstripe\Shortcodable:
     + Violet88\Shortcodable\Shortcodable:
@@ -223,6 +230,7 @@ If you are upgrading from [sheadawson/silverstripe-shortcodable](https://github.
     ```
 
 4.  Update your class namespaces from `Shortcodable` to `Shortcodable`:
+
     ```diff
     - use SilverStripe\Shortcodable;
     + use Violet88\Shortcodable\Shortcodable;
@@ -262,3 +270,4 @@ If you are upgrading from [sheadawson/silverstripe-shortcodable](https://github.
     +         ]
     +     ]
     + ]
+    ```
