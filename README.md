@@ -48,17 +48,21 @@ class MyDataObject extends DataObject
         'Content' => 'HTMLText',
     ];
 
-    public function parse_shortcode($arguments, $content, $parser, $tagName)
+    public static function parse_shortcode($arguments, $content, $parser, $tagName)
     {
+        $object = self::get()->byID($arguments['id']);
+
         return ArrayData::create([
-            'Title' => $this->Title,
-            'Content' => $this->Content,
+            'Title' => $object->Title,
+            'Content' => $object->Content,
         ])->renderWith('MyDataObject');
     }
 }
 ```
 
 > **Note:** The `parse_shortcode` method doesn't need to use template rendering. It can return any string.
+
+> **Note:** The `parse_shortcode` method must be a static one. All shortcodes contain an 'id' argument with which the object can be fetched.
 
 ### Additional Shortcode Attributes
 
@@ -114,11 +118,13 @@ class MyDataObject extends DataObject
         ]
 	];
 
-    public function parse_shortcode($arguments, $content, $parser, $tagName)
+    public static function parse_shortcode($arguments, $content, $parser, $tagName)
     {
+        $object = self::get()->byID($arguments['id']);
+
         return ArrayData::create([
-            'Title' => $this->Title,
-            'Content' => $this->Content,
+            'Title' => $object->Title,
+            'Content' => $object->Content,
         ])->renderWith('MyDataObject');
     }
 }
@@ -161,11 +167,13 @@ class MyDataObject extends DataObject
         'Type'
     ];
 
-    public function parse_shortcode($arguments, $content, $parser, $tagName)
+    public static function parse_shortcode($arguments, $content, $parser, $tagName)
     {
+        $object = self::get()->byID($arguments['id']);
+
         return ArrayData::create([
-            'Title' => $this->Title,
-            'Content' => $this->Content,
+            'Title' => $object->Title,
+            'Content' => $object->Content,
         ])->renderWith('MyDataObject');
     }
 }
