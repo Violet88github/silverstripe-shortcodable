@@ -2,6 +2,7 @@
 
 namespace Violet88\Shortcodable;
 
+use ReflectionMethod;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\View\ViewableData;
 use SilverStripe\View\Parsers\ShortcodeParser;
