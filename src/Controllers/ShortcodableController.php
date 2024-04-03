@@ -70,13 +70,23 @@ class ShortcodableController extends LeftAndMain
             $properties = [];
             $properties = $class::config()->get('shortcode_fields') ?: [];
 
-            // For each property, check if it contains an option key that is not an array. This should be interpreted as a method name.
-            foreach ($properties as $property => $options)
+            foreach ($properties as $property => $options) {
+                // If the property is numeric and the options is a string, convert it to an array with default options. Which in this case is a text field.
+                if (is_numeric($property) && !is_array($options)) {
+                    $properties[$options] = [
+                        'title' => $options,
+                        'type' => 'text',
+                    ];
+                    unset($properties[$property]);
+                }
+
+                // If the options is a string, call the method on the class to get the options.
                 if (isset($options['options']) && !is_array($options['options'])) {
                     $method = $options['options'];
                     $object = $class::singleton();
                     $properties[$property]['options'] = $object->$method();
                 }
+            }
 
             $fields['shortcodes'][$classname] = array(
                 'class' => $classname,
